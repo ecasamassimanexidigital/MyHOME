@@ -44,6 +44,9 @@ from OWNd.message import (
     OWNGatewayEvent,
     OWNGatewayCommand,
     OWNCommand,
+    MESSAGE_TYPE_ACTION,
+    MESSAGE_TYPE_MODE,
+    MESSAGE_TYPE_MODE_TARGET,
 )
 
 from .const import (
@@ -98,6 +101,7 @@ class MyHOMEGatewayHandler:
         self.listening_worker: asyncio.tasks.Task = None
         self.sending_workers: List[asyncio.tasks.Task] = []
         self.send_buffer = asyncio.Queue()
+        self._last_heating_action_request: Dict[str, float] = {}
 
     @property
     def mac(self) -> str:
@@ -282,6 +286,9 @@ class MyHOMEGatewayHandler:
                                         ):
                                             self.hass.data[DOMAIN][self.mac][CONF_PLATFORMS][_platform][message.entity][CONF_ENTITIES][_entity].handle_event(message)
 
+                    if isinstance(message, OWNHeatingEvent):
+                        await self._maybe_request_heating_action_status(message)
+
                 else:
                     LOGGER.debug(
                         "%s Ignoring translation message `%s`",
@@ -363,6 +370,42 @@ class MyHOMEGatewayHandler:
         LOGGER.debug("%s Destroying listening worker.", self.log_id)
         self.listening_worker.cancel()
 
+    async def _maybe_request_heating_action_status(self, message: OWNHeatingEvent) -> None:
+        """Request valve status so climate entities get real ACTION events."""
+
+        if message.message_type == MESSAGE_TYPE_ACTION:
+            return
+
+        if message.message_type not in (MESSAGE_TYPE_MODE, MESSAGE_TYPE_MODE_TARGET):
+            return
+
+        entity_id = getattr(message, "entity", None)
+        zone = getattr(message, "zone", None)
+        if entity_id is None or zone is None:
+            return
+
+        now = asyncio.get_running_loop().time()
+        last_request = self._last_heating_action_request.get(entity_id, 0)
+        if now - last_request < 2:
+            return
+
+        self._last_heating_action_request[entity_id] = now
+
+        where = str(zone)
+        command = OWNHeatingCommand(f"*#4*{where}*19##")
+        command._human_readable_log = (
+            f"Requesting hvac_action status for zone {zone}."
+        )
+
+        LOGGER.debug(
+            "%s Requesting valve status for zone %s after %s update.",
+            self.log_id,
+            zone,
+            message.message_type,
+        )
+
+        await self.send_status_request(command)
+
     async def sending_loop(self, worker_id: int):
         self._terminate_sender = False
 
@@ -378,10 +421,10 @@ class MyHOMEGatewayHandler:
         while not self._terminate_sender:
             task = await self.send_buffer.get()
             LOGGER.debug(
-                "%s Message `%s` was successfully unqueued by worker %s.",
+                "%s Message `%s` on the host %s was successfully unqueued by worker %s.",
                 self.name,
-                self.gateway.host,
                 task["message"],
+                self.gateway.host,
                 worker_id,
             )
             await _command_session.send(message=task["message"], is_status_request=task["is_status_request"])
