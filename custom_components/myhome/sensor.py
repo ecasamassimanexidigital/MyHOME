@@ -248,22 +248,24 @@ class MyHOMEPowerSensor(MyHOMEEntity, SensorEntity):
 
     async def async_added_to_hass(self):
         """When entity is added to hass."""
-        self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
             self._platform
-        ][self._device_id][CONF_ENTITIES][self._attr_device_class] = self
+        ][self._device_id]
+        if CONF_ENTITIES not in device_data:
+            device_data[CONF_ENTITIES] = {}
+        device_data[CONF_ENTITIES][self._attr_device_class] = self
         await self.async_update()
 
     async def async_will_remove_from_hass(self):
         """When entity is removed from hass."""
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+            self._platform
+        ][self._device_id]
         if (
-            self._attr_device_class
-            in self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES]
+            CONF_ENTITIES in device_data
+            and self._attr_device_class in device_data[CONF_ENTITIES]
         ):
-            del self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES][self._attr_device_class]
+            del device_data[CONF_ENTITIES][self._attr_device_class]
 
     async def async_update(self):
         """Update the entity.
@@ -344,22 +346,24 @@ class MyHOMEEnergySensor(MyHOMEEntity, SensorEntity):
 
     async def async_added_to_hass(self):
         """When entity is added to hass."""
-        self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
             self._platform
-        ][self._device_id][CONF_ENTITIES][self._entity_specific_id] = self
+        ][self._device_id]
+        if CONF_ENTITIES not in device_data:
+            device_data[CONF_ENTITIES] = {}
+        device_data[CONF_ENTITIES][self._entity_specific_id] = self
         await self.async_update()
 
     async def async_will_remove_from_hass(self):
         """When entity is removed from hass."""
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+            self._platform
+        ][self._device_id]
         if (
-            self._entity_specific_id
-            in self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES]
+            CONF_ENTITIES in device_data
+            and self._entity_specific_id in device_data[CONF_ENTITIES]
         ):
-            del self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES][self._entity_specific_id]
+            del device_data[CONF_ENTITIES][self._entity_specific_id]
 
     async def async_update(self):
         """Update the entity.
@@ -463,22 +467,24 @@ class MyHOMETemperatureSensor(MyHOMEEntity, SensorEntity):
 
     async def async_added_to_hass(self):
         """When entity is added to hass."""
-        self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
             self._platform
-        ][self._device_id][CONF_ENTITIES][self._attr_device_class] = self
+        ][self._device_id]
+        if CONF_ENTITIES not in device_data:
+            device_data[CONF_ENTITIES] = {}
+        device_data[CONF_ENTITIES][self._attr_device_class] = self
         await self.async_update()
 
     async def async_will_remove_from_hass(self):
         """When entity is removed from hass."""
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+            self._platform
+        ][self._device_id]
         if (
-            self._attr_device_class
-            in self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES]
+            CONF_ENTITIES in device_data
+            and self._attr_device_class in device_data[CONF_ENTITIES]
         ):
-            del self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES][self._attr_device_class]
+            del device_data[CONF_ENTITIES][self._attr_device_class]
 
     async def async_update(self):
         """Update the entity.
@@ -557,22 +563,24 @@ class MyHOMEIlluminanceSensor(MyHOMEEntity, SensorEntity):
 
     async def async_added_to_hass(self):
         """When entity is added to hass."""
-        self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
             self._platform
-        ][self._device_id][CONF_ENTITIES][self._attr_device_class] = self
+        ][self._device_id]
+        if CONF_ENTITIES not in device_data:
+            device_data[CONF_ENTITIES] = {}
+        device_data[CONF_ENTITIES][self._attr_device_class] = self
         await self.async_update()
 
     async def async_will_remove_from_hass(self):
         """When entity is removed from hass."""
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+            self._platform
+        ][self._device_id]
         if (
-            self._attr_device_class
-            in self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES]
+            CONF_ENTITIES in device_data
+            and self._attr_device_class in device_data[CONF_ENTITIES]
         ):
-            del self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES][self._attr_device_class]
+            del device_data[CONF_ENTITIES][self._attr_device_class]
 
     async def async_update(self):
         """Update the entity.

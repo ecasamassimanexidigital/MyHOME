@@ -11,6 +11,7 @@ from homeassistant.const import (
     CONF_MAC,
     CONF_FRIENDLY_NAME,
 )
+from homeassistant.helpers import device_registry as dr
 from homeassistant.components.light import DOMAIN as LIGHT
 from homeassistant.components.switch import (
     SwitchDeviceClass,
@@ -102,6 +103,7 @@ class MyHOMEGatewayHandler:
         self.sending_workers: List[asyncio.tasks.Task] = []
         self.send_buffer = asyncio.Queue()
         self._last_heating_action_request: Dict[str, float] = {}
+        self.device_registry_id: str | None = None
 
     @property
     def mac(self) -> str:
@@ -109,7 +111,8 @@ class MyHOMEGatewayHandler:
 
     @property
     def unique_id(self) -> str:
-        return self.mac
+        formatted = dr.format_mac(self.mac)
+        return formatted
 
     @property
     def log_id(self) -> str:

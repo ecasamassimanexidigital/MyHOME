@@ -9,7 +9,6 @@ if TYPE_CHECKING:
 from homeassistant.helpers.entity import Entity
 from homeassistant.const import CONF_ENTITIES
 
-
 from .const import DOMAIN, CONF_PLATFORMS, CONF_ENTITIES
 
 
@@ -45,12 +44,15 @@ class MyHOMEEntity(Entity):
             "name": name,
             "manufacturer": self._manufacturer,
             "model": self._model,
-            "via_device": (DOMAIN, self._gateway_handler.unique_id),
+            "via_device_id": self._gateway_handler.device_registry_id,
         }
 
     async def async_added_to_hass(self):
         """When entity is added to hass."""
-        self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][self._platform][self._device_id][CONF_ENTITIES][self._platform] = self
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][self._platform][self._device_id]
+        if CONF_ENTITIES not in device_data:
+            device_data[CONF_ENTITIES] = {}
+        device_data[CONF_ENTITIES][self._platform] = self
         await self.async_update()
 
     async def async_will_remove_from_hass(self):
