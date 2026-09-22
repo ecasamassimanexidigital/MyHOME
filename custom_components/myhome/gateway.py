@@ -52,6 +52,8 @@ from OWNd.message import (
 
 from .const import (
     CONF_PLATFORMS,
+    CONF_WHO,
+    CONF_ZONE,
     CONF_FIRMWARE,
     CONF_SSDP_LOCATION,
     CONF_SSDP_ST,
@@ -290,6 +292,23 @@ class MyHOMEGatewayHandler:
                                             self.hass.data[DOMAIN][self.mac][CONF_PLATFORMS][_platform][message.entity][CONF_ENTITIES][_entity].handle_event(message)
 
                     if isinstance(message, OWNHeatingEvent):
+                        climate_devices = self.hass.data[DOMAIN][self.mac][
+                            CONF_PLATFORMS
+                        ].get(CLIMATE, {})
+                        climate_device = climate_devices.get(message.entity)
+                        if climate_device is None:
+                            for candidate in climate_devices.values():
+                                candidate_entity = (
+                                    f"{candidate.get(CONF_WHO)}-"
+                                    f"{candidate.get(CONF_ZONE)}"
+                                )
+                                if candidate_entity == message.entity:
+                                    climate_entity = candidate.get(
+                                        CONF_ENTITIES, {}
+                                    ).get(CLIMATE)
+                                    if isinstance(climate_entity, MyHOMEEntity):
+                                        climate_entity.handle_event(message)
+                                    break
                         await self._maybe_request_heating_action_status(message)
 
                 else:
