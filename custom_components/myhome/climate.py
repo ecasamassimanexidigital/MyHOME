@@ -272,6 +272,13 @@ class MyHOMEClimate(MyHOMEEntity, ClimateEntity):
 
     def handle_event(self, message: OWNHeatingEvent):
         """Handle an event message."""
+        LOGGER.debug(
+            "%s Climate %s (zone %s): %s",
+            self._gateway_handler.log_id,
+            self._device_id,
+            self._where,
+            message.human_readable_log,
+        )
         if message.message_type == MESSAGE_TYPE_MAIN_TEMPERATURE:
             LOGGER.info(
                 "%s %s",

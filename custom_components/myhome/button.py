@@ -142,21 +142,20 @@ class DisableCommandButtonEntity(ButtonEntity, MyHOMEEntity):
 
     async def async_added_to_hass(self):
         """When entity is added to hass."""
-        self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
             self._platform
-        ][self._device_id][CONF_ENTITIES]["disable"] = self
+        ][self._device_id]
+        if CONF_ENTITIES not in device_data:
+            device_data[CONF_ENTITIES] = {}
+        device_data[CONF_ENTITIES]["disable"] = self
 
     async def async_will_remove_from_hass(self):
         """When entity is removed from hass."""
-        if (
-            "disable"
-            in self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES]
-        ):
-            del self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES]["disable"]
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+            self._platform
+        ][self._device_id]
+        if CONF_ENTITIES in device_data and "disable" in device_data[CONF_ENTITIES]:
+            del device_data[CONF_ENTITIES]["disable"]
 
     async def async_press(self) -> None:
         """Press the button."""
@@ -211,21 +210,20 @@ class EnableCommandButtonEntity(ButtonEntity, MyHOMEEntity):
 
     async def async_added_to_hass(self):
         """When entity is added to hass."""
-        self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
             self._platform
-        ][self._device_id][CONF_ENTITIES]["enable"] = self
+        ][self._device_id]
+        if CONF_ENTITIES not in device_data:
+            device_data[CONF_ENTITIES] = {}
+        device_data[CONF_ENTITIES]["enable"] = self
 
     async def async_will_remove_from_hass(self):
         """When entity is removed from hass."""
-        if (
-            "enable"
-            in self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES]
-        ):
-            del self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
-                self._platform
-            ][self._device_id][CONF_ENTITIES]["enable"]
+        device_data = self._hass.data[DOMAIN][self._gateway_handler.mac][CONF_PLATFORMS][
+            self._platform
+        ][self._device_id]
+        if CONF_ENTITIES in device_data and "enable" in device_data[CONF_ENTITIES]:
+            del device_data[CONF_ENTITIES]["enable"]
 
     async def async_press(self) -> None:
         """Press the button."""

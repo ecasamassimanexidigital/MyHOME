@@ -118,17 +118,26 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
     entity_registry = er.async_get(hass)
     device_registry = dr.async_get(hass)
 
+    gateway_handler = hass.data[DOMAIN][entry.data[CONF_MAC]][CONF_ENTITY]
+    manufacturer = gateway_handler.manufacturer
+    if isinstance(manufacturer, list):
+        manufacturer = manufacturer[0] if manufacturer else "BTicino S.p.A."
+    firmware = gateway_handler.firmware
+    if isinstance(firmware, list):
+        firmware = firmware[0] if firmware else None
+
     gateway_device_entry = device_registry.async_get_or_create(
         config_entry_id=entry.entry_id,
         connections={(dr.CONNECTION_NETWORK_MAC, entry.data[CONF_MAC])},
         identifiers={
-            (DOMAIN, hass.data[DOMAIN][entry.data[CONF_MAC]][CONF_ENTITY].unique_id)
+            (DOMAIN, gateway_handler.unique_id)
         },
-        manufacturer=hass.data[DOMAIN][entry.data[CONF_MAC]][CONF_ENTITY].manufacturer,
-        name=hass.data[DOMAIN][entry.data[CONF_MAC]][CONF_ENTITY].name,
-        model=hass.data[DOMAIN][entry.data[CONF_MAC]][CONF_ENTITY].model,
-        sw_version=hass.data[DOMAIN][entry.data[CONF_MAC]][CONF_ENTITY].firmware,
+        manufacturer=manufacturer,
+        name=gateway_handler.name,
+        model=gateway_handler.model,
+        sw_version=firmware,
     )
+    gateway_handler.device_registry_id = gateway_device_entry.id
 
     await hass.config_entries.async_forward_entry_setups(
         entry, hass.data[DOMAIN][entry.data[CONF_MAC]][CONF_PLATFORMS].keys()
@@ -148,12 +157,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
 
     # Pruning lose entities and devices from the registry
     entity_entries = er.async_entries_for_config_entry(entity_registry, entry.entry_id)
+    device_entries = dr.async_entries_for_config_entry(device_registry, entry.entry_id)
 
     entities_to_be_removed = []
     devices_to_be_removed = [
         device_entry.id
-        for device_entry in device_registry.devices.values()
-        if entry.entry_id in device_entry.config_entries
+        for device_entry in device_entries
     ]
 
     configured_entities = []
@@ -162,9 +171,12 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
         for _device in hass.data[DOMAIN][entry.data[CONF_MAC]][CONF_PLATFORMS][
             _platform
         ].keys():
-            for _entity_name in hass.data[DOMAIN][entry.data[CONF_MAC]][CONF_PLATFORMS][
+            device_data = hass.data[DOMAIN][entry.data[CONF_MAC]][CONF_PLATFORMS][
                 _platform
-            ][_device][CONF_ENTITIES]:
+            ][_device]
+            if CONF_ENTITIES not in device_data:
+                continue
+            for _entity_name in device_data[CONF_ENTITIES]:
                 if _entity_name != _platform:
                     configured_entities.append(
                         f"{entry.data[CONF_MAC]}-{_device}-{_entity_name}"
